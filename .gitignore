@@ -14,3 +14,6 @@
 
 # Configuration files
 .DS_Store
+
+#VPS key
+my-vps-key

@@ -56,6 +56,14 @@ resource "aws_security_group" "allow_ssh_http" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Port Jenkins UI
+  ingress {
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Allow all outbound traffic (egress)
   egress {
     from_port   = 0
@@ -108,3 +116,4 @@ resource "aws_instance" "servers" {
 output "instance_ips" {
   value = aws_instance.servers[*].public_ip
 }
+

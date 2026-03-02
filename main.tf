@@ -107,6 +107,11 @@ resource "aws_instance" "servers" {
   vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
   key_name               = aws_key_pair.deployer.key_name
 
+  root_block_device {
+    volume_size = 20 
+    volume_type = "gp3"
+  }  
+
   tags = {
     Name = "Server-${count.index}"
   }

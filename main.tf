@@ -98,14 +98,46 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"]
 }
 
+# 1. Create an IAM Role - this document defines the permissions
+resource "aws_iam_role" "jenkins_role" {
+  name = "jenkins_ecr_role"
+
+  # This allows EC2 instances to "assume" this role
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+# 2. Attach ECR permissions (PowerUser/FullAccess is enough for building and pushing)
+resource "aws_iam_role_policy_attachment" "jenkins_ecr_policy" {
+  role       = aws_iam_role.jenkins_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
+}
+
+# 3. Create an Instance Profile - this is the link between the Role and the physical server
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "jenkins_instance_profile"
+  role = aws_iam_role.jenkins_role.name
+}
+
 # Dynamic ID for AMI
 resource "aws_instance" "servers" {
-  count                  = 3
+  count                  = 1
   ami                    = data.aws_ami.ubuntu.id 
-  instance_type          = "t3.micro"
+  instance_type          = "t3.small"
   subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.allow_ssh_http.id]
   key_name               = aws_key_pair.deployer.key_name
+  iam_instance_profile   = aws_iam_instance_profile.ec2_profile.name
 
   root_block_device {
     volume_size = 20 

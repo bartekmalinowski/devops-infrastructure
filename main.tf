@@ -64,6 +64,14 @@ resource "aws_security_group" "allow_ssh_http" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Port K8s
+  ingress {
+    from_port   = 6443
+    to_port     = 6443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+  }
+
   # Allow all outbound traffic (egress)
   egress {
     from_port   = 0
@@ -129,9 +137,19 @@ resource "aws_iam_instance_profile" "ec2_profile" {
   role = aws_iam_role.jenkins_role.name
 }
 
+resource "aws_ecr_repository" "moj_mikroserwis" {
+  name                 = "moj-mikroserwis"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = true # Allows to delede repo when there are images
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+
 # Dynamic ID for AMI
 resource "aws_instance" "servers" {
-  count                  = 1
+  count                  = 3
   ami                    = data.aws_ami.ubuntu.id 
   instance_type          = "t3.small"
   subnet_id              = aws_subnet.public_subnet.id

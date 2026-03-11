@@ -72,6 +72,14 @@ resource "aws_security_group" "allow_ssh_http" {
     cidr_blocks = ["0.0.0.0/0"] 
   }
 
+  # Port K8s worker
+  ingress {
+    from_port   = 30001
+    to_port     = 30001
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+  }
+
   # Allow all outbound traffic (egress)
   egress {
     from_port   = 0
